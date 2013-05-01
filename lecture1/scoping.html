@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head></head>
+<body>
+<div id="container"></div>
+</body>
+<script type="text/javascript">
+var container = document.getElementById('container');
+
+for(var i=0; i < 10; i++) {
+	var btn = document.createElement('button');
+	btn.textContent = i;
+	btn.addEventListener('click', function() {
+		alert(i);
+	});
+	console.log(btn);
+	container.appendChild(btn);
+}
+</script>
+</html>

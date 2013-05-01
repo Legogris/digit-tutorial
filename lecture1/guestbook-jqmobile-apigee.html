@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>digIT demoApp</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.1/jquery.mobile-1.1.1.min.css" />
+        <style type="text/css">
+.message {
+    white-space: pre;
+}
+        </style>
+        <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+        <script src="http://code.jquery.com/mobile/1.1.1/jquery.mobile-1.1.1.min.js"></script>
+        <script src="http://raw.github.com/apigee/usergrid-javascript-sdk/master/usergrid.min.js"></script>
+    </head>
+    <body>
+        <form method="POST" action="#">
+            <label for="name">Namn:</label><input type="text" id="name" size="20"/> <br />
+            <label for="message">Meddelande:</label><textarea id="message"></textarea>
+            <input type="button" id="createButton" value="Skapa"/>
+        </form>
+        <ul id="posts" data-role="listview">
+        </ul>
+        <script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    var client = new Usergrid.Client({orgName: 'Legogris', appName: 'sandbox'});
+    var posts = new Usergrid.Collection({client: client, type: 'posts'});
+    var loadPosts = function() {
+        posts.fetch(function() {
+            var postList = document.getElementById('posts');
+            postList.innerHTML = '';
+            while(posts.hasNextEntity()) {
+                var postData = posts.getNextEntity();
+                console.log(postData);
+                addPost(new Post(postData.get('sender'), postData.get('message')));
+            }
+        });
+    };
+
+    var Post = function(sender, message) {
+        this.sender = sender;
+        this.message = message;
+    }
+
+    Post.prototype.toElement = function() {
+        var container = document.createElement('li');
+        var sender = document.createElement('h3');
+        var message = document.createElement('p');
+        sender.textContent = this.sender+':';
+        message.textContent = this.message;
+        sender.className = 'sender';
+        message.className = 'message';
+        container.appendChild(sender);
+        container.appendChild(message);
+        return container;
+    };
+
+    var createClick = function(e) {
+        e.stopImmediatePropagation();
+        var name = document.getElementById('name').value;
+        var message = document.getElementById('message').value;
+        var post = new Post(name, message);
+        savePost(post);
+    };
+
+    var savePost = function(post) {
+        post.type = 'post';
+        client.createEntity(post, function(err, cat) {
+            if(err) {
+                console.log('error', err);
+            } else {
+                loadPosts();
+
+            }
+        });
+    };
+
+    var addPost = function(post) {
+        var postList = document.getElementById('posts');
+        postList.appendChild(post.toElement());
+        $(postList).listview('refresh');
+    };
+
+    var createButton = document.getElementById('createButton');
+    createButton.addEventListener('click', createClick);
+    loadPosts();
+});
+        </script>
+    </body>
+</html>
